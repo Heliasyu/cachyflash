@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CachyFlash documentation</title>
+  <meta name="description" content="How to download a CachyOS installer and write it to a USB stick with CachyFlash 1.3.">
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #0c0d0f;
+      color: #e7e5e4;
+      font: 16px/1.5 ui-sans-serif, system-ui, sans-serif;
+    }
+    main { max-width: 42rem; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+    a { color: inherit; }
+    h1 { font-size: 1.6rem; font-weight: 600; letter-spacing: -0.02em; margin: 0.4rem 0 0; }
+    h2 { font-size: 1.05rem; font-weight: 600; margin: 2rem 0 0.4rem; }
+    p, li { color: #a8a29e; }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.9rem; }
+    code { color: #e7e5e4; }
+    pre { background: #17181b; border: 1px solid #2a2c31; border-radius: 6px; padding: 0.8rem 1rem; overflow-x: auto; color: #e7e5e4; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { text-align: left; padding: 0.45rem 0.6rem 0.45rem 0; border-top: 1px solid #2a2c31; vertical-align: top; }
+    th { color: #a8a29e; font-weight: 500; }
+    nav { display: flex; flex-wrap: wrap; gap: 0.35rem 1rem; margin-top: 1.25rem; font-size: 0.92rem; }
+    nav a { color: #a8a29e; }
+    .lede { color: #a8a29e; margin-top: 0.6rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <p><a href="https://github.com/Heliasyu/cachyflash">Heliasyu/cachyflash</a></p>
+    <h1>CachyFlash</h1>
+    <p class="lede">Version 1.3. A Linux window that downloads a CachyOS installer and writes it to a USB stick. The same writer runs from the command line.</p>
+    <nav>
+      <a href="#open">Open it</a>
+      <a href="#window">Window</a>
+      <a href="#cache">Downloaded image</a>
+      <a href="#write">The write</a>
+      <a href="#safety">Refusals</a>
+      <a href="#boot">Boot</a>
+      <a href="#cli">Command line</a>
+      <a href="#images">Pinned images</a>
+    </nav>
+
+    <h2 id="open">Open it</h2>
+    <p>x86_64 Linux. The window uses the system Qt 6 libraries. The password popup uses polkit (<code>pkexec</code>) or <code>sudo</code>.</p>
+    <pre>chmod +x CachyFlash-1.3-x86_64.AppImage
+./CachyFlash-1.3-x86_64.AppImage</pre>
+    <p>No arguments opens the window. Use a USB stick of at least 4 GB. Desktop 260809 is 2.97 GiB.</p>
+
+    <h2 id="window">Window</h2>
+    <p>Choose the image before Detect device. The write button stays off until a file is ready.</p>
+    <table>
+      <tr><th>Button</th><th>Meaning</th></tr>
+      <tr><td>Image required</td><td>No file yet. The button cannot be pressed.</td></tr>
+      <tr><td>Preparing image</td><td>Download or SHA256 check is running.</td></tr>
+      <tr><td>Detect device</td><td>The image is ready. Press this before you insert the stick.</td></tr>
+      <tr><td>Waiting for device</td><td>The insert dialog has been confirmed. Plug the stick in once.</td></tr>
+      <tr><td>Writing image</td><td>Do not remove the stick.</td></tr>
+    </table>
+    <p>Detect device opens the insert dialog immediately. Plug the stick in after that dialog. A stick that was already inserted is ignored until you remove it and plug it in again.</p>
+    <p>Confirm the detected disk, then confirm the erase warning. The password request is a system popup.</p>
+
+    <h2 id="cache">Downloaded image</h2>
+    <p>Download latest saves the ISO under <code>~/.cache/cachyflash/</code>. Writing the stick copies that file. It does not delete it. The next Download latest reuses the file when the size and SHA256 still match.</p>
+    <p>Choose an ISO leaves your original file where you picked it. An image that is not a pinned release asks before it is used.</p>
+
+    <h2 id="write">The write</h2>
+    <p>The stick is the whole disk, not a partition. That is the hybrid layout the installer boots from. It does not create a normal data filesystem.</p>
+    <pre>dd bs=4M status=progress oflag=sync</pre>
+    <p>After the write it syncs the disk and compares the first 1 MiB with the image.</p>
+
+    <h2 id="safety">What it refuses</h2>
+    <ul>
+      <li>The disk that holds <code>/</code>, <code>/boot</code>, <code>/efi</code>, <code>/home</code>, or <code>/usr</code>.</li>
+      <li>Partitions. The target is the disk itself, such as <code>/dev/sdb</code>.</li>
+      <li>Disks that are not USB or removable.</li>
+      <li>A stick smaller than the image.</li>
+      <li>A download whose SHA256 does not match the pinned value.</li>
+    </ul>
+
+    <h2 id="boot">Boot the stick</h2>
+    <ol>
+      <li>Reboot and open the firmware boot menu.</li>
+      <li>Choose the stick. If it is missing, turn Secure Boot off for the install.</li>
+      <li>The installer needs a working internet connection.</li>
+    </ol>
+    <p>Desktop 260809 lets you pick the desktop during install. Handheld 260628 is the game-mode image for Steam Deck, ROG Ally, Legion Go, and Legion Go S.</p>
+
+    <h2 id="cli">Command line</h2>
+    <pre>./CachyFlash-1.3-x86_64.AppImage --help
+./CachyFlash-1.3-x86_64.AppImage --edition desktop
+./CachyFlash-1.3-x86_64.AppImage --edition handheld --gpg
+./CachyFlash-1.3-x86_64.AppImage --edition desktop --device /dev/sdb --yes
+./CachyFlash-1.3-x86_64.AppImage --iso PATH --sha256 HEX --device /dev/sdb
+./CachyFlash-1.3-x86_64.AppImage --dry-run --edition desktop</pre>
+    <p><code>--dry-run</code> writes nothing. <code>--gpg</code> checks CachyOS key <code>F3B607488DB35A47</code>. Mirrors, in order: mirror.cachyos.org, then us.cachyos.org.</p>
+    <p>The script in the repository is the command-line writer. The AppImage calls it when you pass arguments.</p>
+
+    <h2 id="images">Pinned images</h2>
+    <p>Checked 12 Oct 2026.</p>
+    <table>
+      <tr><th>Image</th><th>File</th><th>SHA256</th></tr>
+      <tr><td>Desktop 260809<br>2.97 GiB</td><td>cachyos-desktop-linux-260809.iso</td><td><code>959f6577f45e25ee9fd8c220fd221b08e4ea79412c7315c0f922dd6d86d5e33c</code></td></tr>
+      <tr><td>Handheld 260628<br>2.48 GiB</td><td>cachyos-handheld-linux-260628.iso</td><td><code>0567c61f21622e5b4b482a874c41076beeb9bd8c00f046fa40e5c8cfbe34d15f</code></td></tr>
+    </table>
+    <p>A newer ISO works from Choose an ISO, or from <code>--iso</code> with <code>--sha256</code>.</p>
+  </main>
+</body>
+</html>
