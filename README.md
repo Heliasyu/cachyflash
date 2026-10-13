@@ -86,7 +86,7 @@ Desktop 260809 lets you pick the desktop during install. Handheld 260628 is the 
 
 Mirrors, in order: `https://mirror.cachyos.org`, then `https://us.cachyos.org`.
 
-The script in this repository is the command-line writer. The AppImage calls it when you pass arguments.
+The AppImage runs this command-line writer when you pass arguments.
 
 ## Pinned images
 
